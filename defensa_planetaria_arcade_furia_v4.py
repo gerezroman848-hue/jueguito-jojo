@@ -6,9 +6,7 @@ from pathlib import Path
 from datetime import datetime
 import pygame
 
-# DEFENSA PLANETARIA - versión ampliada
-# Instalar: python -m pip install pygame
-# Ejecutar: python defensa_planetaria.py
+
 
 pygame.init()
 
@@ -27,14 +25,14 @@ RED = (255, 75, 75)
 YELLOW = (255, 220, 70)
 GREEN = (70, 235, 120)
 DARK = (5, 8, 25)
-GAME_DURATION = 90  # duración total de la partida
-BOSS_DURATION = 30  # el jefe aparece durante los últimos 30 segundos
+GAME_DURATION = 90  
+BOSS_DURATION = 30  
 BOSS_START = GAME_DURATION - BOSS_DURATION
 MAX_RECORDS = 10
 SCORE_FILE = Path(__file__).with_name("defensa_planetaria_records.json")
 
 
-# Efectos de sonido originales sintetizados al iniciar. No requiere archivos externos.
+
 AUDIO_ENABLED = True
 SOUNDS = {}
 
@@ -99,7 +97,7 @@ WEAPONS = {
 
 stars = [(random.randrange(WIDTH), random.randrange(HEIGHT), random.choice([1, 1, 2])) for _ in range(110)]
 
-# La capa de nebulosas se crea una sola vez para mantener el rendimiento estable.
+
 NEBULA_LAYER = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
 pygame.draw.ellipse(NEBULA_LAYER, (45, 18, 85, 22), (-110, 88, 470, 250))
 pygame.draw.ellipse(NEBULA_LAYER, (10, 65, 100, 20), (450, 272, 540, 280))
@@ -170,7 +168,7 @@ def draw_crosshair(pos, color=CYAN):
 def draw_background():
     """Fondo espacial animado con nebulosas suaves y estrellas titilantes."""
     screen.fill(DARK)
-    # Nebulosas precalculadas: el fondo no crea una superficie nueva cada fotograma.
+    
     screen.blit(NEBULA_LAYER, (0, 0))
     ticks = pygame.time.get_ticks()
     for i, (x, y, radius) in enumerate(stars):
@@ -183,7 +181,7 @@ def draw_background():
         if radius == 2 and i % 37 == 0:
             streak_y = int((yy + ticks * 0.035) % HEIGHT)
             pygame.draw.line(screen, (55, 100, 155), (x, streak_y - 8), (x, streak_y + 4), 1)
-    # Líneas de horizonte futurista, muy tenues.
+    
     horizon = HEIGHT - 105
     for i in range(1, 6):
         yy = horizon + i * i * 5
@@ -195,7 +193,7 @@ def draw_background():
 def draw_planet(planet, x, y, radius):
     pygame.draw.circle(screen, planet["color"], (x, y), radius)
     pygame.draw.circle(screen, (220, 235, 255), (x - radius // 3, y - radius // 3), radius // 5)
-    # Marcas fijas para que el planeta no parpadee en cada fotograma.
+    
     rng = random.Random(100 + int(x) + int(y))
     for _ in range(7):
         px = rng.randint(x - radius + 5, x + radius - 5)
@@ -262,7 +260,7 @@ def draw_boss(elapsed, rage=0.0):
     """Dibuja un jefe arcade invulnerable; su aura crece cuanto más se enfurece."""
     x = int(WIDTH // 2 + math.sin(elapsed * 1.7) * 230)
     y = int(165 + math.sin(elapsed * 2.4) * 18)
-    # Aura pulsante: pasa de violeta a rojo conforme aumenta la furia.
+    
     pulse = 5 + int((math.sin(elapsed * (3.5 + rage * 5)) + 1) * (5 + rage * 8))
     aura_color = (int(40 + 100 * rage), 18, int(95 - 35 * rage))
     pygame.draw.ellipse(screen, aura_color, (x - 112 - pulse, y - 49 - pulse, 224 + pulse * 2, 98 + pulse * 2))
@@ -279,7 +277,7 @@ def draw_boss(elapsed, rage=0.0):
     pygame.draw.circle(screen, WHITE, (x - 25, y - 3), 3)
     pygame.draw.circle(screen, WHITE, (x + 25, y - 3), 3)
     pygame.draw.line(screen, (255, 150, 230), (x - 23, y + 19), (x + 23, y + 19), 3)
-    # Cañones laterales
+    
     for side in (-1, 1):
         pygame.draw.circle(screen, CYAN, (x + side * 55, y + 24), 8)
         pygame.draw.circle(screen, WHITE, (x + side * 55, y + 24), 3)
@@ -436,7 +434,7 @@ UPGRADES = [
 
 
 def make_upgrade_options(game):
-    # Evita ofrecer de nuevo las mejoras únicas; las mejoras de estadísticas pueden repetirse.
+    
     repeatable = {"rapid", "damage", "speed"}
     available = [u for u in UPGRADES if u["id"] not in game["upgrades"] or u["id"] in repeatable]
     return random.sample(available, min(3, len(available)))
@@ -662,13 +660,13 @@ def main():
                 game["damage_flash"] = max(0.0, game["damage_flash"] - dt / 1000)
                 game["shield_timer"] = max(0.0, game["shield_timer"] - dt / 1000)
                 game["shield_cooldown"] = max(0.0, game["shield_cooldown"] - dt / 1000)
-                # Últimos 10 segundos: clímax visual y ataques más rápidos.
+                
                 if game["elapsed"] >= GAME_DURATION - 10 and not game["final_phase_started"]:
                     game["final_phase_started"] = True
                     game["particles"].extend({"x": random.randint(0, WIDTH), "y": random.randint(0, HEIGHT // 2),
                                               "vx": random.uniform(-1.5, 1.5), "vy": random.uniform(1.0, 3.5),
                                               "life": random.randint(15, 28)} for _ in range(45))
-                # El jefe entra al comenzar los últimos 30 segundos. La fase se centra en él.
+                
                 if game["elapsed"] >= BOSS_START and not game["boss_active"]:
                     game["boss_active"] = True
                     game["enemies"].clear()
@@ -694,7 +692,7 @@ def main():
                         game["enemies"].append(new_enemy(game["level"]))
                         game["spawn_timer"] = 0
                 else:
-                    # La furia crece linealmente durante los 30 segundos del jefe.
+                    
                     rage = max(0.0, min(1.0, (game["elapsed"] - BOSS_START) / BOSS_DURATION))
                     game["boss_rage"] = rage
                     game["boss_attack_timer"] += dt
@@ -710,7 +708,7 @@ def main():
                         spawn_boss_minion(game, rage)
                         game["boss_minion_timer"] = 0
 
-                # Mantener ESPACIO apretado dispara continuamente.
+                
                 keys = pygame.key.get_pressed()
                 effective_cooldown = max(45, int(WEAPONS[game["weapon"]]["cooldown"] * game["cooldown_factor"]))
                 if (keys[pygame.K_SPACE] or game["auto_fire"]) and game["shot_timer"] >= effective_cooldown:
@@ -731,7 +729,7 @@ def main():
                     else:
                         state = "victory"
 
-            # Jefe: no tiene vida ni puede ser eliminado por disparos; cada impacto da puntos.
+            
             if game["boss_active"]:
                 boss_rage = max(0.0, min(1.0, (game["elapsed"] - BOSS_START) / BOSS_DURATION))
                 game["boss_x"], game["boss_y"] = draw_boss(game["elapsed"], boss_rage)
@@ -748,13 +746,13 @@ def main():
                 draw_text(rage_label, SMALL, rage_color, WIDTH // 2, 311, True)
                 draw_text("¡Disparale para sumar puntos y esquivá sus ataques!", SMALL, WHITE, WIDTH // 2, 333, True)
                 if boss_remaining <= 10:
-                    # Borde de alarma pulsante durante la última fase.
+                    
                     alarm = (pygame.time.get_ticks() // 100) % 2 == 0
                     if alarm:
                         pygame.draw.rect(screen, (255, 45, 65), (3, 3, WIDTH - 6, HEIGHT - 6), 4, border_radius=12)
                     draw_text("¡SOBRECARGA! ¡AGUANTÁ 10 SEGUNDOS!", SMALL, (255, 95, 105), WIDTH // 2, 356, True)
 
-            # Proyectiles del jefe: se pueden destruir disparándoles o dejarán daño al planeta.
+            
             for boss_shot in game["boss_shots"][:]:
                 if state == "playing" and not game["game_over"]:
                     boss_shot["x"] += boss_shot["vx"]
@@ -793,7 +791,7 @@ def main():
                     if boss_shot in game["boss_shots"]:
                         game["boss_shots"].remove(boss_shot)
 
-            # Enemigos
+            
             for enemy in game["enemies"][:]:
                 dx = WIDTH // 2 - enemy["x"]
                 dy = HEIGHT - 20 - enemy["y"]
@@ -830,7 +828,7 @@ def main():
                         else:
                             state = "gameover"
 
-            # Disparos y colisiones
+            
             for shot in game["shots"][:]:
                 if state == "playing" and not game["game_over"]:
                     shot["x"] += shot["vx"]
@@ -841,7 +839,7 @@ def main():
                     game["shots"].remove(shot)
                     continue
                 if state == "playing" and not game["game_over"]:
-                    # La torreta puede interceptar las salvas del jefe para proteger el planeta.
+                    
                     intercepted = None
                     for boss_shot in game["boss_shots"]:
                         if math.hypot(shot["x"] - boss_shot["x"], shot["y"] - boss_shot["y"]) < boss_shot["radius"] + 6:
@@ -860,7 +858,7 @@ def main():
                         if shot in game["shots"]:
                             game["shots"].remove(shot)
                         continue
-                    # El jefe es invulnerable: los impactos dan puntos, pero nunca reducen su duración.
+                    
                     if game["boss_active"] and abs(shot["x"] - game["boss_x"]) < 72 and abs(shot["y"] - game["boss_y"]) < 42:
                         game["score"] += 5
                         game["shots_hit"] = game.get("shots_hit", 0) + 1
@@ -922,7 +920,7 @@ def main():
                 draw_text("JEFE FINAL DETECTADO", FONT, (255, 105, 210), WIDTH // 2, 392, True)
                 draw_text("PROTOCOLO DE SOBRECARGA INICIADO", SMALL, WHITE, WIDTH // 2, 422, True)
 
-            # Interfaz con paneles legibles estilo consola espacial.
+            
             draw_panel(pygame.Rect(10, 8, 205, 118), fill=(5, 12, 32, 205), border=(35, 95, 145), radius=10)
             draw_panel(pygame.Rect(WIDTH - 225, 8, 215, 96), fill=(5, 12, 32, 205), border=(35, 95, 145), radius=10)
             draw_text(planet["name"], FONT, WHITE, 20, 18)
@@ -1002,7 +1000,7 @@ def main():
                     draw_text(record_message, SMALL, CYAN, WIDTH // 2, HEIGHT // 2 + 98, True)
                 draw_text("R: jugar de nuevo   |   ENTER: menú   |   ESC: salir", SMALL, WHITE, WIDTH // 2, HEIGHT // 2 + 140, True)
 
-        # Destello rojo al recibir daño: feedback inmediato sin sacudir la ventana.
+        
         if game and game.get("damage_flash", 0) > 0 and state in ("playing", "paused"):
             alpha = int(105 * min(1.0, game["damage_flash"] / 0.35))
             flash = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
